@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artisan Sanctuary - Original Works of Art</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter & Playfair Display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        stone: {
+                            50: '#fafaf9',
+                            100: '#f5f5f4',
+                            200: '#e7e5e4',
+                            300: '#d6d3d1',
+                            400: '#a8a29e',
+                            800: '#292524',
+                            900: '#1c1917',
+                        },
+                        neutral: {
+                            warm: '#fbf9f6',
+                            sand: '#f2eee9',
+                            taupe: '#e3ded8',
+                            earth: '#78716c',
+                            dark: '#262422'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #fbf9f6;
+            color: #262422;
+        }
+        /* Custom scrollbar for clean minimal look */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #fbf9f6;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e3ded8;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a29e;
+        }
+        .fade-in {
+            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-stone-200">
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 ease-out bg-stone-900 text-stone-100 px-6 py-3 rounded-xl shadow-lg flex items-center space-x-3 text-sm">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toast-message">Notification message</span>
+    </div>
+
+    <!-- WELCOME / LANDING SCREEN -->
+    <div id="welcome-screen" class="fixed inset-0 z-40 bg-[#fbf9f6] flex flex-col justify-between p-6 sm:p-12 transition-opacity duration-700">
+        <!-- Top header branding -->
+        <div class="flex justify-between items-center max-w-7xl mx-auto w-full">
+            <div class="font-serif text-xl sm:text-2xl tracking-widest text-neutral-dark font-medium uppercase">Atelier</div>
+            <button onclick="enterGallery()" class="text-xs uppercase tracking-widest text-neutral-earth hover:text-neutral-dark transition-colors border-b border-neutral-earth pb-0.5">
+                Skip Intro
+            </button>
+        </div>
+
+        <!-- Center hero content -->
+        <div class="max-w-3xl mx-auto text-center my-auto px-4 fade-in">
+            <span class="text-xs uppercase tracking-[0.3em] text-neutral-earth font-medium mb-4 block">Curated Original Works</span>
+            <h1 class="font-serif text-4xl sm:text-6xl md:text-7xl font-normal tracking-tight text-neutral-dark mb-6 leading-[1.1]">
+                Art that speaks to <span class="italic font-light">the soul.</span>
+            </h1>
+            <p class="text-neutral-earth text-base sm:text-lg font-light max-w-xl mx-auto mb-10 leading-relaxed">
+                Discover authentic paintings, sculptures, and mixed media pieces directly from independent creators worldwide.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+                <button onclick="enterGallery()" class="w-full sm:w-auto bg-neutral-dark text-stone-50 px-8 py-4 rounded-full text-xs uppercase tracking-[0.2em] hover:bg-stone-800 transition-all shadow-sm hover:shadow">
+                    Explore Collection
+                </button>
+                <button onclick="openSellModal()" class="w-full sm:w-auto border border-neutral-taupe text-neutral-dark px-8 py-4 rounded-full text-xs uppercase tracking-[0.2em] hover:bg-neutral-sand transition-all">
+                    List Your Artwork
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer note -->
+        <div class="text-center max-w-7xl mx-auto w-full text-xs text-neutral-earth/60 font-light tracking-wide">
+            &copy; 2026 Atelier Sanctuary. Minimalist art marketplace.
+        </div>
+    </div>
+
+    <!-- MAIN APP NAVIGATION -->
+    <header class="sticky top-0 z-30 bg-[#fbf9f6]/90 backdrop-blur-md border-b border-neutral-taupe/60 transition-all">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="resetFilters()">
+                <div class="w-8 h-8 rounded-full bg-neutral-taupe flex items-center justify-center font-serif text-sm font-semibold text-neutral-dark">A</div>
+                <span class="font-serif text-xl tracking-wider text-neutral-dark font-medium">Atelier</span>
+            </div>
+
+            <!-- Desktop Search & Filters bar -->
+            <div class="hidden md:flex items-center space-x-4 flex-1 max-w-md mx-8">
+                <div class="relative w-full">
+                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-earth/60">
+                        <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                    </span>
+                    <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Search by artist or title..." 
+                        class="w-full pl-10 pr-4 py-2.5 bg-neutral-sand/60 border border-neutral-taupe/60 rounded-full text-xs text-neutral-dark placeholder-neutral-earth/60 focus:outline-none focus:border-neutral-earth transition-all">
+                </div>
+            </div>
+
+            <!-- Nav Actions -->
+            <div class="flex items-center space-x-4">
+                <button onclick="openSellModal()" class="hidden sm:flex items-center space-x-2 text-xs uppercase tracking-wider text-neutral-dark bg-neutral-sand hover:bg-neutral-taupe/40 px-4 py-2.5 rounded-full transition-all">
+                    <i class="fa-solid fa-plus text-[10px]"></i>
+                    <span>List Work</span>
+                </button>
+                <button onclick="toggleMobileSearch()" class="md:hidden p-2 text-neutral-dark hover:bg-neutral-sand rounded-full transition-colors">
+                    <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                </button>
+                <div class="relative">
+                    <button onclick="toggleOffersDrawer()" class="p-2.5 text-neutral-dark hover:bg-neutral-sand rounded-full transition-colors relative" title="Your Offers">
+                        <i class="fa-regular fa-paper-plane text-sm"></i>
+                        <span id="offer-badge" class="absolute top-1 right-1 w-2 h-2 bg-stone-800 rounded-full hidden"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Search Expand Bar -->
+        <div id="mobile-search-bar" class="hidden md:hidden px-6 pb-4 pt-1 bg-[#fbf9f6] border-b border-neutral-taupe/40">
+            <div class="relative w-full">
+                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-earth/60">
+                    <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                </span>
+                <input type="text" id="mobileSearchInput" oninput="handleMobileSearch()" placeholder="Search by artist, title, type..." 
+                    class="w-full pl-10 pr-4 py-2.5 bg-neutral-sand border border-neutral-taupe rounded-full text-xs text-neutral-dark placeholder-neutral-earth/60 focus:outline-none focus:border-neutral-earth">
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-1 max-w-7xl mx-auto w-full px-6 py-8">
+        
+        <!-- Category Filter Pills -->
+        <div class="mb-8 flex items-center justify-between flex-wrap gap-4 border-b border-neutral-taupe/40 pb-6">
+            <div id="category-filters" class="flex items-center space-x-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-none">
+                <button onclick="filterByCategory('All')" class="category-btn active px-5 py-2 rounded-full text-xs uppercase tracking-wider bg-neutral-dark text-stone-50 transition-all shrink-0">
+                    All Works
+                </button>
+                <button onclick="filterByCategory('Painting')" class="category-btn px-5 py-2 rounded-full text-xs uppercase tracking-wider bg-neutral-sand text-neutral-earth hover:bg-neutral-taupe/40 hover:text-neutral-dark transition-all shrink-0">
+                    Paintings
+                </button>
+                <button onclick="filterByCategory('Sculpture')" class="category-btn px-5 py-2 rounded-full text-xs uppercase tracking-wider bg-neutral-sand text-neutral-earth hover:bg-neutral-taupe/40 hover:text-neutral-dark transition-all shrink-0">
+                    Sculptures
+                </button>
+                <button onclick="filterByCategory('Photography')" class="category-btn px-5 py-2 rounded-full text-xs uppercase tracking-wider bg-neutral-sand text-neutral-earth hover:bg-neutral-taupe/40 hover:text-neutral-dark transition-all shrink-0">
+                    Photography
+                </button>
+                <button onclick="filterByCategory('Mixed Media')" class="category-btn px-5 py-2 rounded-full text-xs uppercase tracking-wider bg-neutral-sand text-neutral-earth hover:bg-neutral-taupe/40 hover:text-neutral-dark transition-all shrink-0">
+                    Mixed Media
+                </button>
+            </div>
+            
+            <div class="text-xs text-neutral-earth font-light">
+                Showing <span id="result-count" class="font-medium text-neutral-dark">0</span> original works
+            </div>
+        </div>
+
+        <!-- Artwork Grid -->
+        <div id="artwork-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+            <!-- Dynamically populated via JS -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="hidden text-center py-24">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-neutral-sand flex items-center justify-center text-neutral-earth">
+                <i class="fa-regular fa-folder-open text-xl"></i>
+            </div>
+            <h3 class="font-serif text-xl text-neutral-dark mb-2">No artworks found</h3>
+            <p class="text-neutral-earth text-xs max-w-sm mx-auto mb-6">We couldn't find any original pieces matching your search or filter criteria.</p>
+            <button onclick="resetFilters()" class="px-6 py-2.5 bg-neutral-dark text-stone-50 rounded-full text-xs uppercase tracking-wider hover:bg-stone-800 transition-all">
+                Reset Filters
+            </button>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-neutral-sand border-t border-neutral-taupe/60 mt-20 py-12 px-6">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+            <div>
+                <div class="font-serif text-lg tracking-wider text-neutral-dark font-medium mb-2">Atelier Sanctuary</div>
+                <p class="text-neutral-earth text-xs font-light leading-relaxed">Connecting discerning collectors with authentic, original creations from independent artists worldwide.</p>
+            </div>
+            <div class="flex justify-start md:justify-center space-x-6 text-xs uppercase tracking-widest text-neutral-earth">
+                <a href="#" onclick="openSellModal(); return false;" class="hover:text-neutral-dark transition-colors">Submit Art</a>
+                <a href="#" onclick="openPolicyModal(); return false;" class="hover:text-neutral-dark transition-colors">Authenticity</a>
+                <a href="#" onclick="openContactModal(); return false;" class="hover:text-neutral-dark transition-colors">Support</a>
+            </div>
+            <div class="flex justify-start md:justify-end space-x-4 text-neutral-earth">
+                <a href="#" class="w-9 h-9 rounded-full bg-neutral-taupe/40 flex items-center justify-center hover:bg-neutral-taupe transition-colors text-neutral-dark text-xs"><i class="fa-brands fa-instagram"></i></a>
+                <a href="#" class="w-9 h-9 rounded-full bg-neutral-taupe/40 flex items-center justify-center hover:bg-neutral-taupe transition-colors text-neutral-dark text-xs"><i class="fa-brands fa-pinterest-p"></i></a>
+                <a href="#" class="w-9 h-9 rounded-full bg-neutral-taupe/40 flex items-center justify-center hover:bg-neutral-taupe transition-colors text-neutral-dark text-xs"><i class="fa-brands fa-x-twitter"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MAKE AN OFFER MODAL -->
+    <div id="offer-modal" class="fixed inset-0 z-50 bg-neutral-dark/40 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-[#fbf9f6] rounded-2xl max-w-md w-full p-8 shadow-xl border border-neutral-taupe relative fade-in">
+            <button onclick="closeOfferModal()" class="absolute top-6 right-6 text-neutral-earth hover:text-neutral-dark transition-colors w-8 h-8 rounded-full flex items-center justify-center bg-neutral-sand">
+                <i class="fa-solid fa-xmark text-xs"></i>
+            </button>
+
+            <span class="text-[10px] uppercase tracking-[0.2em] text-neutral-earth font-medium mb-1 block">Private Negotiation</span>
+            <h3 class="font-serif text-2xl text-neutral-dark mb-1" id="modal-art-title">Make an Offer</h3>
+            <p class="text-neutral-earth text-xs mb-6" id="modal-art-artist">Artist Name &bull; Listed at $0.00</p>
+
+            <form id="offerForm" onsubmit="submitOffer(event)">
+                <input type="hidden" id="modal-art-id">
+                
+                <div class="mb-4">
+                    <label class="block text-xs uppercase tracking-wider text-neutral-dark font-medium mb-2">Your Offer Amount (USD)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-neutral-earth">$</span>
+                        <input type="number" id="offer-amount" required min="1" placeholder="Enter amount"
+                            class="w-full pl-8 pr-4 py-3 bg-neutral-sand border border-neutral-taupe rounded-xl text-sm text-neutral-dark focus:outline-none focus:border-neutral-earth">
+                    </div>
+                    <p class="text-[11px] text-neutral-earth mt-1.5">The artist will review your proposed price and respond within 24 hours.</p>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-xs uppercase tracking-wider text-neutral-dark font-medium mb-2">Your Name</label>
+                    <input type="text" id="offer-buyer-name" required placeholder="Jane Doe"
+                        class="w-full px-4 py-3 bg-neutral-sand border border-neutral-taupe rounded-xl text-sm text-neutral-dark focus:outline-none focus:border-neutral-earth">
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-xs uppercase tracking-wider text-neutral-dark font-medium mb-2">Email Address</label>
+                    <input type="email" id="offer-buyer-email" required placeholder="jane@example.com"
+                        class="w-full px-4 py-3 bg-neutral-sand border border-neutral-taupe rounded-xl text-sm text-neutral-dark focus:outline-none focus:border-neutral-earth">
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-xs uppercase tracking-wider text-neutral-dark font-medium mb-2">Message to Artist (Optional)</label>
+                    <textarea id="offer-message" rows="3" placeholder="Share why this piece resonates with you..."
+                        class="w-full px-4 py-3 bg-neutral-sand border border-neutral-taupe rounded-xl text-sm text-neutral-dark focus:outline-none focus:border-neutral-earth resize-none"></textarea>
+                </div>
+
+                <button type="submit" class="w-full bg-neutral-dark text-stone-50 py-3.5 rounded-xl text-xs uppercase tracking-[0.2em] hover:bg-stone-800 transition-all shadow-sm">
+                    Submit Offer
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- LIST NEW ARTWORK MODAL (For Artists) -->
+    <div id="sell-modal" class="fixed inset-0 z-50 bg-neutral-dark/40 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-[#fbf9f6] rounded-2xl max-w-lg w-full p-8 shadow-xl border border-neutral-taupe relative max-h-[90vh] overflow-y-auto fade-in">
+            <button onclick="closeSellModal()" class="absolute top-6 right-6 text-neutral-earth hover:text-neutral-dark transition-colors w-8 h-8 rounded-full flex items-center justify-center bg-neutral-sand">
+                <i class="fa-solid fa-xmark text-xs"></i>
+            </button>
+
+            <span class="text-[10px] uppercase tracking-[0.2em] text-neutral-earth font-medium mb-1 block">Creator Studio</span>
+            <h3 class="font-serif text-2xl text-neutral-dark mb-1">List Original Artwork</h3>
+            <p class="text-neutral-earth text-xs mb-6">Share your original piece with our global community of collectors.</p>
+
+            <form id="sellForm" onsubmit="submitNewArtwork(event)">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider text-neutral-dark font-medium mb-2">Artwork Title</label>
+                        <input type="text" id="new-title" required placeholder="e.g. Solitude in Ochre"
+                            class="w-full px-4 py-3 bg-neutral-sand border border-neutral-taupe rounded-xl text-sm text-neutral-dark focus:outline-none focus:border-neutral-earth">
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider text-neutral-dark font-medium mb-2">Artist Name</label>
+                        <input type="text" id="new-artist" required placeholder="e.g. Elena Rostova"
+                            class="w-full px-4 py-3 bg-neutral-sand border border-neutral-taupe rounded-xl text-sm text-neutral-dark focus:outline-none focus:border-neutral-earth">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider text-neutral-dark font-medium mb-2">Category / Type</label>
+                        <select id="new-category" class="w-full px-4 py-3 bg-neutral-sand border border-neutral-taupe rounded-xl text-sm text-neutral-dark focus:outline-none focus:border-neutral-earth">
+                            <option value="Painting">Painting</option>
+                            <option value="Sculpture">Sculpture</option>
+                            <option value="Photography">Photography</option>
+                            <option value="Mixed Media">Mixed Media</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider text-neutral-dark font-medium mb-2">Price (USD)</label>
+                        <input type="number" id="new-price" required min="1" placeholder="1250"
+                            class="w-full px-4 py-3 bg-neutral-sand border border-neutral-taupe rounded-xl text-sm text-neutral-dark focus:outline-none focus:border-neutral-earth">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider text-neutral-dark font-medium mb-2">Dimensions</label>
+                        <input type="text" id="new-dimensions" required placeholder="e.g. 24 x 36 in"
+                            class="w-full px-4 py-3 bg-neutral-sand border border-neutral-taupe rounded-xl text-sm text-neutral-dark focus:outline-none focus:border-neutral-earth">
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider text-neutral-dark font-medium mb-2">Image URL</label>
+                        <input type="url" id="new-image" required placeholder="https://images.unsplash.com/..."
+                            class="w-full px-4 py-3 bg-neutral-sand border border-neutral-taupe rounded-xl text-sm text-neutral-dark focus:outline-none focus:border-neutral-earth">
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-xs uppercase tracking-wider text-neutral-dark font-medium mb-2">Description & Artist Note</label>
+                    <textarea id="new-description" required rows="3" placeholder="Describe the medium, inspiration, and framing details..."
+                        class="w-full px-4 py-3 bg-neutral-sand border border-neutral-taupe rounded-xl text-sm text-neutral-dark focus:outline-none focus:border-neutral-earth resize-none"></textarea>
+                </div>
+
+                <button type="submit" class="w-full bg-neutral-dark text-stone-50 py-3.5 rounded-xl text-xs uppercase tracking-[0.2em] hover:bg-stone-800 transition-all shadow-sm">
+                    Publish Artwork
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- OFFERS / SUBMITTED OFFERS DRAWER / MODAL -->
+    <div id="offers-drawer" class="fixed inset-0 z-50 bg-neutral-dark/40 backdrop-blur-sm hidden justify-end">
+        <div class="bg-[#fbf9f6] w-full max-w-md h-full shadow-2xl flex flex-col justify-between p-6 sm:p-8 fade-in relative">
+            <div>
+                <div class="flex items-center justify-between pb-6 border-b border-neutral-taupe">
+                    <div class="flex items-center space-x-2">
+                        <h3 class="font-serif text-xl text-neutral-dark font-medium">Your Active Offers</h3>
+                        <span id="drawer-count" class="px-2 py-0.5 bg-neutral-sand rounded-full text-xs text-neutral-earth font-medium">0</span>
+                    </div>
+                    <button onclick="toggleOffersDrawer()" class="w-8 h-8 rounded-full bg-neutral-sand flex items-center justify-center text-neutral-earth hover:text-neutral-dark transition-colors">
+                        <i class="fa-solid fa-xmark text-xs"></i>
+                    </button>
+                </div>
+
+                <div id="offers-list" class="mt-6 space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto pr-1">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <div class="pt-6 border-t border-neutral-taupe text-center">
+                <p class="text-[11px] text-neutral-earth">Offers are transmitted securely to respective artists.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ARTWORK DETAIL VIEW MODAL -->
+    <div id="detail-modal" class="fixed inset-0 z-50 bg-neutral-dark/50 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-[#fbf9f6] rounded-2xl max-w-4xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-neutral-taupe relative fade-in grid grid-cols-1 md:grid-cols-2">
+            <button onclick="closeDetailModal()" class="absolute top-4 right-4 z-10 text-neutral-earth hover:text-neutral-dark transition-colors w-9 h-9 rounded-full flex items-center justify-center bg-stone-100/80 backdrop-blur-sm">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+            
+            <div class="bg-stone-100 h-72 md:h-full min-h-[350px] relative flex items-center justify-center overflow-hidden">
+                <img id="detail-img" src="" alt="" class="w-full h-full object-cover">
+            </div>
+
+            <div class="p-8 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span id="detail-category" class="text-[10px] uppercase tracking-[0.2em] text-neutral-earth font-medium px-2.5 py-1 bg-neutral-sand rounded-full"></span>
+                        <span id="detail-status" class="text-[10px] uppercase tracking-wider text-emerald-700 font-medium">Available</span>
+                    </div>
+                    <h2 id="detail-title" class="font-serif text-3xl text-neutral-dark mb-1"></h2>
+                    <p id="detail-artist" class="text-neutral-earth text-sm mb-4 font-medium"></p>
+                    
+                    <div class="text-2xl font-serif text-neutral-dark mb-6" id="detail-price"></div>
+
+                    <div class="border-t border-neutral-taupe/60 pt-4 mb-6">
+                        <h4 class="text-xs uppercase tracking-wider text-neutral-dark font-medium mb-2">About the Piece</h4>
+                        <p id="detail-desc" class="text-xs text-neutral-earth leading-relaxed font-light mb-4"></p>
+                        
+                        <div class="flex items-center text-xs text-neutral-earth space-x-4">
+                            <div><strong class="text-neutral-dark">Dimensions:</strong> <span id="detail-dimensions"></span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-3 pt-4 border-t border-neutral-taupe/60">
+                    <button onclick="openOfferModalFromDetail()" class="w-full bg-neutral-dark text-stone-50 py-3.5 rounded-xl text-xs uppercase tracking-[0.2em] hover:bg-stone-800 transition-all shadow-sm">
+                        Make an Offer
+                    </button>
+                    <button onclick="closeDetailModal()" class="w-full bg-neutral-sand text-neutral-dark py-3 rounded-xl text-xs uppercase tracking-wider hover:bg-neutral-taupe/50 transition-all">
+                        Back to Gallery
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Initial Mock Artworks Database
+        let artworks = [
+            {
+                id: 1,
+                title: "Silence of the Dunes",
+                artist: "Elena Rostova",
+                category: "Painting",
+                price: 1450,
+                dimensions: "30 x 40 in",
+                image: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=800&q=80",
+                description: "An evocative oil painting on raw linen capturing the subtle interplay of morning light over minimalist sand dunes. Finished with a protective matte UV varnish."
+            },
+            {
+                id: 2,
+                title: "Monolith in Alabaster",
+                artist: "Soren Lindqvist",
+                category: "Sculpture",
+                price: 3200,
+                dimensions: "18 x 12 x 8 in",
+                image: "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80",
+                description: "Hand-carved Portuguese alabaster sculpture celebrating organic forms and tactile purity. Mounted on a blackened steel museum base."
+            },
+            {
+                id: 3,
+                title: "Vapor & Shadow No. 4",
+                artist: "Amara Thorne",
+                category: "Photography",
+                price: 680,
+                dimensions: "20 x 24 in",
+                image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
+                description: "Archival pigment print on Hahnemühle cotton rag paper. Part of an exclusive edition of 5 original prints, signed and numbered by the artist."
+            },
+            {
+                id: 4,
+                title: "Fragments of Ochre",
+                artist: "Julian Vance",
+                category: "Mixed Media",
+                price: 1850,
+                dimensions: "36 x 36 in",
+                image: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=800&q=80",
+                description: "Layered earth pigments, crushed volcanic ash, and acrylic binder on heavy-weight canvas. A meditative exploration of geological strata."
+            },
+            {
+                id: 5,
+                title: "Ephemeral Horizon",
+                artist: "Elena Rostova",
+                category: "Painting",
+                price: 950,
+                dimensions: "24 x 20 in",
+                image: "https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?auto=format&fit=crop&w=800&q=80",
+                description: "Oil and cold wax on wooden panel. Gentle, atmospheric brushwork evoking the coastal fog of the northern Pacific."
+            },
+            {
+                id: 6,
+                title: "Contemplation in Clay",
+                artist: "Soren Lindqvist",
+                category: "Sculpture",
+                price: 2100,
+                dimensions: "14 x 10 x 10 in",
+                image: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&w=800&q=80",
+                description: "Raku-fired ceramic vessel showcasing natural carbonization patterns and an unglazed, organic surface texture."
+            }
+        ];
+
+        let activeCategory = 'All';
+        let searchQuery = '';
+        let userOffers = [];
+        let currentModalArtwork = null;
+
+        // Welcome screen handling
+        function enterGallery() {
+            const welcome = document.getElementById('welcome-screen');
+            welcome.style.opacity = '0';
+            setTimeout(() => {
+                welcome.style.display = 'none';
+            }, 700);
+        }
+
+        // Render Artworks Grid
+        function renderArtworks() {
+            const grid = document.getElementById('artwork-grid');
+            const emptyState = document.getElementById('empty-state');
+            const resultCount = document.getElementById('result-count');
+
+            let filtered = artworks.filter(art => {
+                const matchesCategory = activeCategory === 'All' || art.category === activeCategory;
+                const matchesSearch = art.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                      art.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                      art.category.toLowerCase().includes(searchQuery.toLowerCase());
+                return matchesCategory && matchesSearch;
+            });
+
+            resultCount.textContent = filtered.length;
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            grid.innerHTML = filtered.map(art => `
+                <div class="group flex flex-col bg-white/60 border border-neutral-taupe/50 rounded-2xl overflow-hidden hover:shadow-md transition-all duration-300 fade-in">
+                    <!-- Artwork Image container -->
+                    <div class="relative aspect-[4/3] bg-neutral-sand overflow-hidden cursor-pointer" onclick="openDetailModal(${art.id})">
+                        <img src="${art.image}" alt="${art.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" onerror="this.src='https://placehold.co/600x450/f2eee9/78716c?text=Artwork'">
+                        <div class="absolute top-3 left-3 bg-[#fbf9f6]/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] uppercase tracking-wider text-neutral-dark font-medium">
+                            ${art.category}
+                        </div>
+                    </div>
+
+                    <!-- Details below picture -->
+                    <div class="p-6 flex flex-col flex-1 justify-between">
+                        <div>
+                            <div class="flex justify-between items-baseline mb-1">
+                                <h3 class="font-serif text-xl text-neutral-dark font-normal cursor-pointer hover:text-neutral-earth transition-colors" onclick="openDetailModal(${art.id})">${art.title}</h3>
+                                <span class="font-serif text-lg text-neutral-dark font-medium">$${art.price.toLocaleString()}</span>
+                            </div>
+                            <p class="text-xs text-neutral-earth font-medium mb-3">${art.artist} &bull; <span class="font-light">${art.dimensions}</span></p>
+                            <p class="text-xs text-neutral-earth/90 line-clamp-2 font-light leading-relaxed mb-6">${art.description}</p>
+                        </div>
+
+                        <div class="flex items-center space-x-3 pt-4 border-t border-neutral-taupe/40">
+                            <button onclick="openOfferModal(${art.id})" class="flex-1 bg-neutral-dark text-stone-50 py-2.5 rounded-xl text-xs uppercase tracking-wider hover:bg-stone-800 transition-all shadow-sm">
+                                Make an Offer
+                            </button>
+                            <button onclick="openDetailModal(${art.id})" class="px-4 py-2.5 bg-neutral-sand text-neutral-dark rounded-xl text-xs uppercase tracking-wider hover:bg-neutral-taupe/40 transition-all">
+                                View
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Category Filter
+        function filterByCategory(category) {
+            activeCategory = category;
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                if (btn.textContent.trim().toLowerCase() === category.toLowerCase() || (category === 'All' && btn.textContent.includes('All'))) {
+                    btn.className = 'category-btn active px-5 py-2 rounded-full text-xs uppercase tracking-wider bg-neutral-dark text-stone-50 transition-all shrink-0';
+                } else {
+                    btn.className = 'category-btn px-5 py-2 rounded-full text-xs uppercase tracking-wider bg-neutral-sand text-neutral-earth hover:bg-neutral-taupe/40 hover:text-neutral-dark transition-all shrink-0';
+                }
+            });
+            renderArtworks();
+        }
+
+        // Search Handlers
+        function handleSearch() {
+            searchQuery = document.getElementById('searchInput').value;
+            const mobileInput = document.getElementById('mobileSearchInput');
+            if (mobileInput) mobileInput.value = searchQuery;
+            renderArtworks();
+        }
+
+        function handleMobileSearch() {
+            searchQuery = document.getElementById('mobileSearchInput').value;
+            const desktopInput = document.getElementById('searchInput');
+            if (desktopInput) desktopInput.value = searchQuery;
+            renderArtworks();
+        }
+
+        function resetFilters() {
+            activeCategory = 'All';
+            searchQuery = '';
+            document.getElementById('searchInput').value = '';
+            const mobileInput = document.getElementById('mobileSearchInput');
+            if (mobileInput) mobileInput.value = '';
+            filterByCategory('All');
+        }
+
+        function toggleMobileSearch() {
+            const bar = document.getElementById('mobile-search-bar');
+            bar.classList.toggle('hidden');
+            if (!bar.classList.contains('hidden')) {
+                document.getElementById('mobileSearchInput').focus();
+            }
+        }
+
+        // Toast Notification
+        function showToast(message, isSuccess = true) {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-message');
+            const iconEl = document.getElementById('toast-icon');
+
+            msgEl.textContent = message;
+            iconEl.className = isSuccess ? "fa-solid fa-circle-check text-emerald-400" : "fa-solid fa-circle-info text-amber-400";
+            
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3500);
+        }
+
+        // Make an Offer Modal logic
+        function openOfferModal(artId) {
+            const art = artworks.find(a => a.id === artId);
+            if (!art) return;
+            currentModalArtwork = art;
+
+            document.getElementById('modal-art-id').value = art.id;
+            document.getElementById('modal-art-title').textContent = art.title;
+            document.getElementById('modal-art-artist').textContent = `${art.artist} • Listed at $${art.price.toLocaleString()}`;
+            document.getElementById('offer-amount').value = Math.round(art.price * 0.9); // suggest 10% off
+
+            const modal = document.getElementById('offer-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function openOfferModalFromDetail() {
+            if (!currentModalArtwork) return;
+            closeDetailModal();
+            openOfferModal(currentModalArtwork.id);
+        }
+
+        function closeOfferModal() {
+            const modal = document.getElementById('offer-modal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+            document.getElementById('offerForm').reset();
+        }
+
+        function submitOffer(e) {
+            e.preventDefault();
+            const artId = parseInt(document.getElementById('modal-art-id').value);
+            const amount = parseFloat(document.getElementById('offer-amount').value);
+            const name = document.getElementById('offer-buyer-name').value;
+            const email = document.getElementById('offer-buyer-email').value;
+            const message = document.getElementById('offer-message').value;
+
+            const art = artworks.find(a => a.id === artId);
+
+            const newOffer = {
+                id: Date.now(),
+                artworkId: artId,
+                artworkTitle: art ? art.title : 'Artwork',
+                artistName: art ? art.artist : 'Artist',
+                amount: amount,
+                buyerName: name,
+                buyerEmail: email,
+                message: message,
+                status: 'Pending Review',
+                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            };
+
+            userOffers.unshift(newOffer);
+            updateOffersBadge();
+            closeOfferModal();
+            showToast(`Offer of $${amount.toLocaleString()} submitted successfully!`);
+        }
+
+        // Offers Drawer Logic
+        function toggleOffersDrawer() {
+            const drawer = document.getElementById('offers-drawer');
+            const isHidden = drawer.classList.contains('hidden');
+            if (isHidden) {
+                drawer.classList.remove('hidden');
+                drawer.classList.add('flex');
+                renderOffersList();
+            } else {
+                drawer.classList.remove('flex');
+                drawer.classList.add('hidden');
+            }
+        }
+
+        function updateOffersBadge() {
+            const badge = document.getElementById('offer-badge');
+            const countEl = document.getElementById('drawer-count');
+            countEl.textContent = userOffers.length;
+            if (userOffers.length > 0) {
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function renderOffersList() {
+            const listEl = document.getElementById('offers-list');
+            if (userOffers.length === 0) {
+                listEl.innerHTML = `
+                    <div class="text-center py-16">
+                        <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-neutral-sand flex items-center justify-center text-neutral-earth">
+                            <i class="fa-regular fa-paper-plane text-sm"></i>
+                        </div>
+                        <p class="text-neutral-earth text-xs">No offers submitted yet.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            listEl.innerHTML = userOffers.map(offer => `
+                <div class="bg-neutral-sand/60 border border-neutral-taupe/60 p-4 rounded-xl">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h4 class="font-serif text-base text-neutral-dark">${offer.artworkTitle}</h4>
+                            <p class="text-xs text-neutral-earth">${offer.artistName}</p>
+                        </div>
+                        <span class="px-2.5 py-1 bg-amber-100 text-amber-800 text-[10px] uppercase tracking-wider rounded-full font-medium">${offer.status}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs pt-2 border-t border-neutral-taupe/40 mt-3">
+                        <span class="text-neutral-earth">Your Offer: <strong class="text-neutral-dark font-medium">$${offer.amount.toLocaleString()}</strong></span>
+                        <span class="text-neutral-earth/70">${offer.date}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Sell Artwork Modal Logic
+        function openSellModal() {
+            const modal = document.getElementById('sell-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeSellModal() {
+            const modal = document.getElementById('sell-modal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+            document.getElementById('sellForm').reset();
+        }
+
+        function submitNewArtwork(e) {
+            e.preventDefault();
+            const title = document.getElementById('new-title').value;
+            const artist = document.getElementById('new-artist').value;
+            const category = document.getElementById('new-category').value;
+            const price = parseFloat(document.getElementById('new-price').value);
+            const dimensions = document.getElementById('new-dimensions').value;
+            const image = document.getElementById('new-image').value;
+            const description = document.getElementById('new-description').value;
+
+            const newArt = {
+                id: Date.now(),
+                title,
+                artist,
+                category,
+                price,
+                dimensions,
+                image,
+                description
+            };
+
+            artworks.unshift(newArt);
+            closeSellModal();
+            renderArtworks();
+            showToast('Artwork listed successfully in the gallery!');
+        }
+
+        // Detail Modal Logic
+        function openDetailModal(artId) {
+            const art = artworks.find(a => a.id === artId);
+            if (!art) return;
+            currentModalArtwork = art;
+
+            document.getElementById('detail-img').src = art.image;
+            document.getElementById('detail-category').textContent = art.category;
+            document.getElementById('detail-title').textContent = art.title;
+            document.getElementById('detail-artist').textContent = `Created by ${art.artist}`;
+            document.getElementById('detail-price').textContent = `$${art.price.toLocaleString()}`;
+            document.getElementById('detail-desc').textContent = art.description;
+            document.getElementById('detail-dimensions').textContent = art.dimensions;
+
+            const modal = document.getElementById('detail-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeDetailModal() {
+            const modal = document.getElementById('detail-modal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+
+        // Informational modals placeholders
+        function openPolicyModal() {
+            showToast("All works include a signed Certificate of Authenticity.", false);
+        }
+
+        function openContactModal() {
+            showToast("Contact curator support at support@ateliersanctuary.com", false);
+        }
+
+        // Initial load
+        window.addEventListener('DOMContentLoaded', () => {
+            renderArtworks();
+        });
+    </script>
+</body>
+</html>
