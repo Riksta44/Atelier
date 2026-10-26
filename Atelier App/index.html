@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atelier | Original Art Gallery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        stoneBg: '#F9F8F6',
+                        cardBg: '#F2EFE9',
+                        accentTone: '#A39B8B',
+                        darkText: '#2C2A29',
+                        mutedText: '#706C6B'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-stoneBg text-darkText font-sans antialiased selection:bg-accentTone selection:text-white min-h-screen flex flex-col">
+
+    <!-- Navigation Header -->
+    <header class="border-b border-stone-200 bg-stoneBg/80 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <h1 class="text-xl tracking-widest font-light uppercase cursor-pointer" onclick="switchView('gallery')">Atelier</h1>
+            <nav class="flex items-center gap-6 text-sm tracking-wide">
+                <button onclick="switchView('gallery')" class="text-mutedText hover:text-darkText transition">Gallery</button>
+                <button onclick="switchView('studio')" class="text-mutedText hover:text-darkText transition">Creator Studio</button>
+                <div id="authNavSection">
+                    <button onclick="openLoginModal()" class="border border-accentTone px-4 py-2 rounded-full hover:bg-accentTone hover:text-white transition">Artist Login</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl mx-auto px-6 py-12 w-full">
+
+        <!-- GALLERY VIEW -->
+        <div id="galleryView" class="space-y-12">
+            <!-- Welcome Hero -->
+            <div class="text-center max-w-2xl mx-auto space-y-4 py-8">
+                <h2 class="text-3xl md:text-4xl font-light tracking-wide text-darkText">Original Works & Curated Pieces</h2>
+                <p class="text-mutedText text-sm leading-relaxed">Discover distinct, original creations from independent artists. Connect directly, make an offer, and acquire timeless works.</p>
+                
+                <!-- Search & Filters -->
+                <div class="pt-4 flex flex-col sm:flex-row gap-3 justify-center items-center">
+                    <input type="text" id="searchInput" oninput="filterArtworks()" placeholder="Search by artist or title..." class="bg-cardBg px-4 py-3 rounded-full text-sm w-full sm:w-80 border border-stone-300 focus:outline-none focus:border-accentTone">
+                    <div id="filterPills" class="flex gap-2 overflow-x-auto pb-2 sm:pb-0">
+                        <button onclick="filterCategory('All')" class="filter-btn px-4 py-2 rounded-full text-xs uppercase tracking-wider bg-accentTone text-white transition">All</button>
+                        <button onclick="filterCategory('Painting')" class="filter-btn px-4 py-2 rounded-full text-xs uppercase tracking-wider bg-cardBg text-mutedText hover:bg-stone-200 transition">Paintings</button>
+                        <button onclick="filterCategory('Sculpture')" class="filter-btn px-4 py-2 rounded-full text-xs uppercase tracking-wider bg-cardBg text-mutedText hover:bg-stone-200 transition">Sculptures</button>
+                        <button onclick="filterCategory('Photography')" class="filter-btn px-4 py-2 rounded-full text-xs uppercase tracking-wider bg-cardBg text-mutedText hover:bg-stone-200 transition">Photography</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Artwork Grid -->
+            <div id="artworkGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Dynamically populated via JS -->
+            </div>
+        </div>
+
+        <!-- CREATOR STUDIO VIEW (Protected) -->
+        <div id="studioView" class="hidden max-w-xl mx-auto space-y-8 py-6">
+            <div class="text-center space-y-2">
+                <h2 class="text-2xl font-light tracking-wide">Creator Studio</h2>
+                <p class="text-mutedText text-sm" id="studioSubtitle">Please log in as an artist to list original works.</p>
+            </div>
+
+            <div id="studioLocked" class="bg-cardBg p-8 rounded-2xl border border-stone-200 text-center space-y-4">
+                <p class="text-sm text-mutedText">You must be authenticated with a connected creator profile to publish artworks.</p>
+                <button onclick="openLoginModal()" class="bg-darkText text-white px-6 py-3 rounded-full text-xs uppercase tracking-widest hover:bg-accentTone transition">Log In / Register</button>
+            </div>
+
+            <form id="studioForm" onsubmit="handleNewArtwork(event)" class="hidden bg-cardBg p-8 rounded-2xl border border-stone-200 space-y-6">
+                <div class="flex justify-between items-center border-b border-stone-300 pb-4">
+                    <span class="text-xs uppercase tracking-widest text-accentTone font-medium" id="loggedInArtistBadge">Logged in as: Artist</span>
+                    <button type="button" onclick="logoutArtist()" class="text-xs text-red-500 hover:underline">Log Out</button>
+                </div>
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-mutedText mb-2">Artwork Title</label>
+                    <input type="text" id="newTitle" required class="w-full bg-stoneBg px-4 py-3 rounded-lg text-sm border border-stone-300 focus:outline-none focus:border-accentTone">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-mutedText mb-2">Category</label>
+                    <select id="newCategory" class="w-full bg-stoneBg px-4 py-3 rounded-lg text-sm border border-stone-300 focus:outline-none focus:border-accentTone">
+                        <option value="Painting">Painting</option>
+                        <option value="Sculpture">Sculpture</option>
+                        <option value="Photography">Photography</option>
+                        <option value="Mixed Media">Mixed Media</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider text-mutedText mb-2">Price (£)</label>
+                        <input type="number" id="newPrice" required class="w-full bg-stoneBg px-4 py-3 rounded-lg text-sm border border-stone-300 focus:outline-none focus:border-accentTone" placeholder="1200">
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider text-mutedText mb-2">Image URL</label>
+                        <input type="url" id="newImage" required class="w-full bg-stoneBg px-4 py-3 rounded-lg text-sm border border-stone-300 focus:outline-none focus:border-accentTone" placeholder="https://...">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-mutedText mb-2">Description</label>
+                    <textarea id="newDesc" rows="3" required class="w-full bg-stoneBg px-4 py-3 rounded-lg text-sm border border-stone-300 focus:outline-none focus:border-accentTone" placeholder="Medium, dimensions, inspiration..."></textarea>
+                </div>
+                <button type="submit" class="w-full bg-darkText text-white py-3 rounded-full text-xs uppercase tracking-widest hover:bg-accentTone transition">Publish Artwork</button>
+            </form>
+        </div>
+
+    </main>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 bg-darkText/40 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-stoneBg p-8 rounded-2xl max-w-md w-full space-y-6 shadow-xl border border-stone-200">
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-light tracking-wide">Artist Authentication</h3>
+                <button onclick="closeLoginModal()" class="text-mutedText hover:text-darkText">✕</button>
+            </div>
+            <p class="text-xs text-mutedText leading-relaxed">Enter your registered artist email to simulate secure login and Stripe Connect payout linking.</p>
+            <div class="space-y-4">
+                <input type="email" id="artistEmailInput" placeholder="artist@atelier.com" class="w-full bg-cardBg px-4 py-3 rounded-lg text-sm border border-stone-300 focus:outline-none focus:border-accentTone" value="elena.vance@studio.com">
+                <button onclick="loginArtist()" class="w-full bg-darkText text-white py-3 rounded-full text-xs uppercase tracking-widest hover:bg-accentTone transition">Authenticate & Connect Stripe</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Make an Offer Modal -->
+    <div id="offerModal" class="fixed inset-0 bg-darkText/40 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-stoneBg p-8 rounded-2xl max-w-md w-full space-y-6 shadow-xl border border-stone-200">
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-light tracking-wide" id="modalTitle">Make an Offer</h3>
+                <button onclick="closeOfferModal()" class="text-mutedText hover:text-darkText">✕</button>
+            </div>
+            <p class="text-xs text-mutedText" id="modalArtistInfo"></p>
+            <form onsubmit="submitOffer(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-mutedText mb-2">Your Offered Price (£)</label>
+                    <input type="number" id="offerPriceInput" required class="w-full bg-cardBg px-4 py-3 rounded-lg text-sm border border-stone-300 focus:outline-none focus:border-accentTone">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-mutedText mb-2">Your Email</label>
+                    <input type="email" id="offerEmailInput" required placeholder="collector@domain.com" class="w-full bg-cardBg px-4 py-3 rounded-lg text-sm border border-stone-300 focus:outline-none focus:border-accentTone">
+                </div>
+                <button type="submit" class="w-full bg-darkText text-white py-3 rounded-full text-xs uppercase tracking-widest hover:bg-accentTone transition">Submit Offer to Artist</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-stone-200 py-8 text-center text-xs text-mutedText tracking-wider mt-auto">
+        &copy; 2026 Atelier Sanctuary. Automated Split-Payment Marketplace.
+    ></footer>
+
+    <!-- Application Script -->
+    <script>
+        let currentLoggedInArtist = null;
+        let selectedArtworkForOffer = null;
+
+        let artworks = [
+            { id: 1, title: "Silence of the Valley", artist: "Elena Vance", category: "Painting", price: 1450, image: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=800&q=80", desc: "Oil on heavy linen canvas. Framed in natural raw oak." },
+            { id: 2, title: "Monolith Form III", artist: "Marcus Thorne", category: "Sculpture", price: 2800, image: "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80", desc: "Hand-carved Welsh slate with subtle iron mineral veining." },
+            { id: 3, title: "Morning Mist on Moss", artist: "Sora Lin", category: "Photography", price: 650, image: "https://images.unsplash.com/photo-1518998053901-5348d3961a04?auto=format&fit=crop&w=800&q=80", desc: "Archival pigment print on Hahnemühle cotton rag. Edition of 5." }
+        ];
+
+        function renderArtworks(list) {
+            const grid = document.getElementById('artworkGrid');
+            if (list.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-12 text-mutedText text-sm">No artworks found matching your criteria.</div>`;
+                return;
+            }
+            grid.innerHTML = list.map(art => `
+                <div class="bg-cardBg rounded-2xl overflow-hidden border border-stone-200 flex flex-col group transition hover:shadow-md">
+                    <div class="h-80 overflow-hidden relative bg-stone-100">
+                        <img src="${art.image}" alt="${art.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
+                        <span class="absolute top-4 left-4 bg-stoneBg/90 backdrop-blur-sm text-darkText text-[10px] uppercase tracking-widest px-3 py-1 rounded-full">${art.category}</span>
+                    </div>
+                    <div class="p-6 flex flex-col flex-grow justify-between space-y-4">
+                        <div class="space-y-1">
+                            <h3 class="text-lg font-light tracking-wide">${art.title}</h3>
+                            <p class="text-xs text-mutedText tracking-wider uppercase">${art.artist}</p>
+                            <p class="text-xs text-mutedText pt-2 leading-relaxed">${art.desc}</p>
+                        </div>
+                        <div class="pt-4 border-t border-stone-200 flex items-center justify-between">
+                            <span class="text-base font-medium">£${art.price.toLocaleString()}</span>
+                            <button onclick="openOfferModal(${art.id})" class="bg-darkText text-white px-4 py-2 rounded-full text-xs uppercase tracking-wider hover:bg-accentTone transition">Make an Offer</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function switchView(view) {
+            if (view === 'gallery') {
+                document.getElementById('galleryView').classList.remove('hidden');
+                document.getElementById('studioView').classList.add('hidden');
+            } else {
+                document.getElementById('galleryView').classList.add('hidden');
+                document.getElementById('studioView').classList.remove('hidden');
+            }
+        }
+
+        function filterCategory(cat) {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('bg-accentTone', 'text-white');
+                btn.classList.add('bg-cardBg', 'text-mutedText');
+                if(btn.textContent.toLowerCase().includes(cat.toLowerCase() === 'all' ? 'all' : cat.toLowerCase())) {
+                    btn.classList.add('bg-accentTone', 'text-white');
+                    btn.classList.remove('bg-cardBg', 'text-mutedText');
+                }
+            });
+            if (cat === 'All') {
+                renderArtworks(artworks);
+            } else {
+                renderArtworks(artworks.filter(a => a.category === cat));
+            }
+        }
+
+        function filterArtworks() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = artworks.filter(a => a.title.toLowerCase().includes(query) || a.artist.toLowerCase().includes(query));
+            renderArtworks(filtered);
+        }
+
+        function openLoginModal() { document.getElementById('loginModal').classList.remove('hidden'); }
+        function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); }
+
+        function loginArtist() {
+            const email = document.getElementById('artistEmailInput').value;
+            currentLoggedInArtist = email.split('@')[0].replace('.', ' ');
+            document.getElementById('loggedInArtistBadge').textContent = `Connected Artist: ${currentLoggedInArtist} (Stripe Verified)`;
+            document.getElementById('studioLocked').classList.add('hidden');
+            document.getElementById('studioForm').classList.remove('hidden');
+            document.getElementById('authNavSection').innerHTML = `<span class="text-xs text-accentTracking uppercase font-medium">✨ ${currentLoggedInArtist}</span>`;
+            closeLoginModal();
+            switchView('studio');
+        }
+
+        function logoutArtist() {
+            currentLoggedInArtist = null;
+            document.getElementById('studioLocked').classList.remove('hidden');
+            document.getElementById('studioForm').classList.add('hidden');
+            document.getElementById('authNavSection').innerHTML = `<button onclick="openLoginModal()" class="border border-accentTone px-4 py-2 rounded-full hover:bg-accentTone hover:text-white transition">Artist Login</button>`;
+        }
+
+        function handleNewArtwork(e) {
+            e.preventDefault();
+            const newArt = {
+                id: artworks.length + 1,
+                title: document.getElementById('newTitle').value,
+                artist: currentLoggedInArtist ? currentLoggedInArtist.replace(/\b\w/g, l => l.toUpperCase()) : "Independent Artist",
+                category: document.getElementById('newCategory').value,
+                price: Number(document.getElementById('newPrice').value),
+                image: document.getElementById('newImage').value,
+                desc: document.getElementById('newDesc').value
+            };
+            artworks.unshift(newArt);
+            renderArtworks(artworks);
+            document.getElementById('studioForm').reset();
+            switchView('gallery');
+            alert('Artwork successfully published to the live gallery!');
+        }
+
+        function openOfferModal(id) {
+            selectedArtworkForOffer = artworks.find(a => a.id === id);
+            document.getElementById('modalTitle').textContent = `Offer for "${selectedArtworkForOffer.title}"`;
+            document.getElementById('modalArtistInfo').textContent = `Artist: ${selectedArtworkForOffer.artist} | Listed Price: £${selectedArtworkForOffer.price.toLocaleString()}`;
+            document.getElementById('offerPriceInput').value = Math.round(selectedArtworkForOffer.price * 0.9); // Suggest 10% off
+            document.getElementById('offerModal').classList.remove('hidden');
+        }
+
+        function closeOfferModal() { document.getElementById('offerModal').classList.add('hidden'); }
+
+        function submitOffer(e) {
+            e.preventDefault();
+            const offerPrice = document.getElementById('offerPriceInput').value;
+            alert(`Offer of £${Number(offerPrice).toLocaleString()} submitted successfully to ${selectedArtworkForOffer.artist}! They will review and respond via email.`);
+            closeOfferModal();
+        }
+
+        // Initial render
+        renderArtworks(artworks);
+    </script>
+</body>
+</html>
